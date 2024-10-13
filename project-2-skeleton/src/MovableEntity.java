@@ -11,11 +11,8 @@ public abstract class MovableEntity extends GameEntity {
         this.speedY = speedY;
     }
 
-    public abstract void move(Input input);
-
-    @Override
-    public void update() {
-        // Common update logic for movable entities
+    //default implementation left blank for custom implementation
+    public void move(Input input) {
     }
 
     public void moveVertically(boolean moveDown) {

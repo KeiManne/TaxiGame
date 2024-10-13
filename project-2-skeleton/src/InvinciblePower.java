@@ -1,17 +1,18 @@
 import bagel.util.Point;
 
-public class Coin extends GameEntity implements PowerUp {
+public class InvinciblePower extends GameEntity implements PowerUp {
     private boolean isActive;
-    private final int SCROLL_SPEED = 5;
+    private double speedY;
 
-    public Coin(double x, double y, String imagePath, double radius) {
+    public InvinciblePower(double x, double y, String imagePath, double radius, double speedY) {
         super(x, y, imagePath, radius);
         this.isActive = true;
+        this.speedY = speedY;
     }
 
     @Override
     public void update() {
-        //add any per frame updates
+        //add any per-frame updates
     }
 
     @Override
@@ -21,22 +22,16 @@ public class Coin extends GameEntity implements PowerUp {
         }
     }
 
-    /*
-    move coin down as background scrolls
-     */
     public void moveVertically(boolean moveDown) {
         if (moveDown) {
-            position = new Point(position.x, position.y + SCROLL_SPEED);
+            position = new Point(position.x, position.y + speedY);
         }
     }
 
-    /*
-    method to apply invincible power and coin power
-     */
     @Override
     public void applyEffect(GameEntity entity) {
         if (entity instanceof Taxi) {
-            ((Taxi) entity).activateCoinPower();
+            ((Taxi) entity).activateInvincibility();
         } else if (entity instanceof Driver) {
             ((Driver) entity).activateInvincibility();
         }

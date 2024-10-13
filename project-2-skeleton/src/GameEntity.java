@@ -1,7 +1,7 @@
 import bagel.Image;
 import bagel.util.Point;
 
-public abstract class GameEntity {
+public abstract class GameEntity implements Collidable {
     protected Point position;
     protected Image image;
     protected double radius;
@@ -13,8 +13,22 @@ public abstract class GameEntity {
     }
 
     public abstract void update();
+
     public abstract void draw();
 
+    /*
+    method to generalise determination of a collision
+     */
+    public boolean collidesWith(GameEntity other) {
+        double distance = position.distanceTo(other.getPosition());
+        return distance < (this.radius + other.getRadius());
+    }
+
+    @Override
+    public void handleCollision(GameEntity other) {
+    }
+
+    // Getters and setters
     public Point getPosition() {
         return position;
     }
@@ -25,10 +39,5 @@ public abstract class GameEntity {
 
     public double getRadius() {
         return radius;
-    }
-
-    public boolean collidesWith(GameEntity other) {
-        double distance = position.distanceTo(other.getPosition());
-        return distance < (this.radius + other.getRadius());
     }
 }

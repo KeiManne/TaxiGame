@@ -1,41 +1,44 @@
-import bagel.*;
 import bagel.util.Point;
 
-public class TripEndFlag {
-    private final Image image;
-    private Point position;
-    private final double radius;
+public class TripEndFlag extends GameEntity {
     private boolean isVisible;
-    private final double verticalScrollSpeed;
+    private double speedY;
 
-    public TripEndFlag(double x, double y, String imagePath, double radius, double verticalScrollSpeed) {
-        this.image = new Image(imagePath);
-        this.position = new Point(x, y);
-        this.radius = radius;
+    public TripEndFlag(double x, double y, String imagePath, double radius) {
+        super(x, y, imagePath, radius);
         this.isVisible = false;
-        this.verticalScrollSpeed = verticalScrollSpeed;
+        this.speedY = 5;
     }
 
-    public void move(boolean moveDown) {
-        if (moveDown) {
-            position = new Point(position.x, position.y + verticalScrollSpeed);
-        }
+    @Override
+    public void update() {
+        //add any per-frame updates
     }
 
+    @Override
     public void draw() {
         if (isVisible) {
             image.draw(position.x, position.y);
         }
     }
 
+
+    public void moveVertically(boolean moveDown) {
+        if (moveDown) {
+            position = new Point(position.x, position.y + speedY);
+        }
+    }
+
     //getters and setters
-    public Point getPosition() {
-        return position;
+    public boolean isVisible() {
+        return isVisible;
     }
-    public double getRadius() {
-        return radius;
-    }
+
     public void setVisible(boolean visible) {
         isVisible = visible;
+    }
+
+    public Point getPosition() {
+        return position;
     }
 }
