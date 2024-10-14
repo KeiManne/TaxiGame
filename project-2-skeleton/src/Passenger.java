@@ -1,6 +1,9 @@
 import bagel.*;
 import bagel.util.Point;
 
+/**
+ * Represents a passenger that can be picked up and transported by taxis.
+ */
 public class Passenger extends MovableEntity implements Damageable, Collidable {
     private static final double PRIORITY_TEXT_OFFSET_X = 30;
     private static final double EARNINGS_TEXT_OFFSET_X = 100;
@@ -27,7 +30,26 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
     private Point separationDirection;
     private boolean isFollowingDriver;
 
-
+    /**
+     * Constructs a new Passenger with specified attributes.
+     *
+     * @param x The x-coordinate of the passenger's initial position
+     * @param y The y-coordinate of the passenger's initial position
+     * @param priority The priority level of the passenger
+     * @param endX The x-coordinate of the passenger's destination
+     * @param yDistance The vertical distance to the passenger's destination
+     * @param imagePath The file path to the passenger's image
+     * @param fontPath The file path to the font used for passenger information
+     * @param fontSize The font size for passenger information
+     * @param radius The collision radius of the passenger
+     * @param ratePerY The rate per vertical distance unit for fare calculation
+     * @param priorityRate1 The fare rate for priority level 1
+     * @param priorityRate2 The fare rate for priority level 2
+     * @param priorityRate3 The fare rate for priority level 3
+     * @param speedX The horizontal walking speed of the passenger
+     * @param speedY The vertical walking speed of the passenger
+     * @param hasUmbrella Whether the passenger has an umbrella
+     */
     public Passenger(double x, double y, int priority, double endX, double yDistance, String imagePath,
                      String fontPath, int fontSize, double radius, double ratePerY,
                      double priorityRate1, double priorityRate2, double priorityRate3,
@@ -48,8 +70,10 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         this.damage = 0;
     }
 
-    /*
-    method to enable walking mechanics - taken from my project 1
+    /**
+     * Moves the passenger towards a target position.
+     *
+     * @param target The target position to move towards
      */
     public void moveTowards(Point target) {
         if (isWalking && targetPosition != null) {
@@ -67,6 +91,11 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         }
     }
 
+    /**
+     * Moves the passenger vertically based on game world scrolling.
+     *
+     * @param moveDown true if the game world is scrolling down, false otherwise
+     */
     @Override
     public void moveVertically(boolean moveDown) {
         if (!isPickedUp && moveDown) {
@@ -74,6 +103,9 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         }
     }
 
+    /**
+     * Updates the passenger's state, including collision effects.
+     */
     @Override
     public void update() {
         if (collisionTimeout > 0) {
@@ -89,6 +121,9 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         }
     }
 
+    /**
+     * Draws the passenger and their information on the game screen.
+     */
     @Override
     public void draw() {
         if (!isDroppedOff() && !isPickedUp) {
@@ -104,10 +139,18 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         }
     }
 
+    /**
+     * Calculates the expected earnings for transporting this passenger.
+     *
+     * @return The expected earnings
+     */
     public double calculateExpectedEarnings() {
         return yDistance * ratePerY + priorityRates[priority - 1];
     }
 
+    /**
+     * Increases the priority of the passenger if possible.
+     */
     public void increasePriority() {
         if (priority > 1 && !priorityIncreased) {
             priority--;
@@ -115,6 +158,11 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         }
     }
 
+    /**
+     * Applies damage to the passenger.
+     *
+     * @param amount The amount of damage to apply
+     */
     @Override
     public void takeDamage(double amount) {
         health -= amount;
@@ -123,6 +171,11 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         }
     }
 
+    /**
+     * Handles collision with another game entity.
+     *
+     * @param other The other entity involved in the collision
+     */
     @Override
     public void handleCollision(GameEntity other) {
         if (collisionTimeout > 0) return;
@@ -140,13 +193,22 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         }
     }
 
-
+    /**
+     * Updates the passenger's priority based on weather conditions.
+     *
+     * @param currentWeather The current weather condition
+     */
     public void updatePriority(WeatherCondition.WeatherType currentWeather) {
         if (currentWeather == WeatherCondition.WeatherType.RAINING && !hasUmbrella) {
             priority = 1;
         }
     }
 
+    /**
+     * Makes the passenger follow the driver's position.
+     *
+     * @param driverPosition The current position of the driver
+     */
     public void followDriver(Point driverPosition) {
         if (isFollowingDriver) {
             moveTowards(driverPosition);
@@ -154,28 +216,57 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
     }
 
     //getters and setters
+    /**
+     * Gets the current health of the passenger.
+     *
+     * @return The current health value
+     */
     @Override
     public double getHealth() {
         return health;
     }
 
+    /**
+     * Gets the current position of the passenger.
+     *
+     * @return The Point representing the passenger's position
+     */
     public Point getPosition() {
         return position;
     }
 
+    /**
+     * Sets the position of the passenger.
+     *
+     * @param newPosition The new position for the passenger
+     */
     public void setPosition(Point newPosition) {
         super.setPosition(newPosition);
     }
 
-
+    /**
+     * Gets the priority of the passenger.
+     *
+     * @return The priority value
+     */
     public int getPriority() {
         return priority;
     }
 
+    /**
+     * Checks if the passenger is currently picked up.
+     *
+     * @return true if the passenger is picked up, false otherwise
+     */
     public boolean isPickedUp() {
         return isPickedUp;
     }
 
+    /**
+     * Sets the picked up state of the passenger.
+     *
+     * @param pickedUp The new picked up state
+     */
     public void setPickedUp(boolean pickedUp) {
         this.isPickedUp = pickedUp;
         if (pickedUp) {
@@ -183,40 +274,85 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         }
     }
 
+    /**
+     * Checks if the passenger has been dropped off.
+     *
+     * @return true if the passenger is dropped off, false otherwise
+     */
     public boolean isDroppedOff() {
         return isDroppedOff;
     }
 
+    /**
+     * Sets the dropped off state of the passenger.
+     *
+     * @param droppedOff The new dropped off state
+     */
     public void setDroppedOff(boolean droppedOff) {
         isDroppedOff = droppedOff;
     }
 
+    /**
+     * Sets the target position for the passenger to move towards.
+     *
+     * @param target The target position
+     */
     public void setTargetPosition(Point target) {
         this.targetPosition = target;
     }
 
+    /**
+     * Gets the current target position of the passenger.
+     *
+     * @return The Point representing the target position
+     */
     public Point getTargetPosition() {
         return targetPosition;
     }
 
+    /**
+     * Checks if the passenger is currently walking.
+     *
+     * @return true if the passenger is walking, false otherwise
+     */
     public boolean isWalking() {
         return isWalking;
     }
 
+    /**
+     * Sets the walking state of the passenger.
+     *
+     * @param walking The new walking state
+     */
     public void setWalking(boolean walking) {
         this.isWalking = walking;
     }
 
+    /**
+     * Gets the damage this passenger can inflict on other entities.
+     *
+     * @return The damage value
+     */
     @Override
     public int getDamage() {
         return damage;
     }
 
+    /**
+     * Sets whether the passenger is following the driver.
+     *
+     * @param followingDriver The new following driver state
+     */
     public void setFollowingDriver(boolean followingDriver) {
         this.isFollowingDriver = followingDriver;
     }
+
+    /**
+     * Checks if the passenger is currently following the driver.
+     *
+     * @return true if the passenger is following the driver, false otherwise
+     */
     public boolean isFollowingDriver() {
         return isFollowingDriver;
     }
-
 }

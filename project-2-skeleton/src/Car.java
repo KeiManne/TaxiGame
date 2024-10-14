@@ -1,5 +1,8 @@
 import bagel.util.Point;
 
+/**
+ * Represents a car in the game that moves independently and can collide with other entities.
+ */
 public class Car extends IndependentlyMovableEntity implements Damageable, Collidable {
     private static final int COLLISION_TIMEOUT = 200;
     private static final int SEPARATION_FRAMES = 10;
@@ -16,6 +19,14 @@ public class Car extends IndependentlyMovableEntity implements Damageable, Colli
     private Point separationDirection;
     private boolean isColliding;
 
+    /**
+     * Constructs a new Car at the specified position.
+     *
+     * @param x The x-coordinate of the car's initial position
+     * @param y The y-coordinate of the car's initial position
+     * @param imagePath The file path to the car's image
+     * @param radius The collision radius of the car
+     */
     public Car(double x, double y, String imagePath, double radius) {
         super(x, y, imagePath, radius, 0, generateRandomSpeed());
         this.health = CAR_HEALTH;
@@ -27,6 +38,9 @@ public class Car extends IndependentlyMovableEntity implements Damageable, Colli
         return MIN_SPEED + Math.random() * (MAX_SPEED - MIN_SPEED);
     }
 
+    /**
+     * Moves the car independently based on its current state and speed.
+     */
     @Override
     public void moveIndependently() {
         if (!isColliding) {
@@ -34,6 +48,9 @@ public class Car extends IndependentlyMovableEntity implements Damageable, Colli
         }
     }
 
+    /**
+     * Updates the car's state, including collision timeouts and movement.
+     */
     @Override
     public void update() {
         if (collisionTimeout > 0) {
@@ -56,6 +73,11 @@ public class Car extends IndependentlyMovableEntity implements Damageable, Colli
         }
     }
 
+    /**
+     * Updates the car's state, considering vertical scrolling of the game world.
+     *
+     * @param moveDown true if the game world is scrolling down, false otherwise
+     */
     public void update(boolean moveDown) {
         if (collisionTimeout > 0) {
             collisionTimeout--;
@@ -84,11 +106,19 @@ public class Car extends IndependentlyMovableEntity implements Damageable, Colli
         }
     }
 
+    /**
+     * Renders the car on the game screen.
+     */
     @Override
     public void draw() {
         image.draw(position.x, position.y);
     }
 
+    /**
+     * Handles collision with another game entity.
+     *
+     * @param other The other entity involved in the collision
+     */
     @Override
     public void handleCollision(GameEntity other) {
         if (collisionTimeout > 0) return;
@@ -108,7 +138,11 @@ public class Car extends IndependentlyMovableEntity implements Damageable, Colli
         }
     }
 
-
+    /**
+     * Applies damage to the car.
+     *
+     * @param amount The amount of damage to apply
+     */
     @Override
     public void takeDamage(double amount) {
         health -= amount;
@@ -118,20 +152,40 @@ public class Car extends IndependentlyMovableEntity implements Damageable, Colli
     }
 
     //getters and setters
+    /**
+     * Gets the current health of the car.
+     *
+     * @return The current health value
+     */
     @Override
     public double getHealth() {
         return health;
     }
 
+    /**
+     * Gets the current health of the car.
+     *
+     * @return The current health value
+     */
     @Override
     public int getDamage() {
         return damage;
     }
 
+    /**
+     * Checks if the car is currently in a collision timeout period.
+     *
+     * @return true if the car is in collision timeout, false otherwise
+     */
     public boolean isInCollisionTimeout() {
         return collisionTimeout > 0;
     }
 
+    /**
+     * Checks if the car is damaged (health <= 0).
+     *
+     * @return true if the car is damaged, false otherwise
+     */
     public boolean isDamaged() {
         return isDamaged;
     }

@@ -1,6 +1,8 @@
 import bagel.*;
 import bagel.util.Point;
-
+/**
+ * Represents a taxi in the game that can be driven and pick up passengers.
+ */
 public class Taxi extends MovableEntity implements Collidable, Damageable {
     private static final String DAMAGED_IMAGE = "res/taxiDamaged.png";
     private static final int COLLISION_TIMEOUT = 200;
@@ -24,7 +26,16 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
     private Point separationDirection;
     private int separationFramesLeft;
 
-
+    /**
+     * Constructs a new Taxi at the specified position.
+     *
+     * @param x The x-coordinate of the taxi's initial position
+     * @param y The y-coordinate of the taxi's initial position
+     * @param imagePath The file path to the taxi's image
+     * @param radius The collision radius of the taxi
+     * @param speedX The horizontal speed of the taxi
+     * @param speedY The vertical speed of the taxi
+     */
     public Taxi(double x, double y, String imagePath, double radius, double speedX, double speedY) {
         super(x, y, imagePath, radius, speedX, speedY);
         this.health = TAXI_HEALTH;
@@ -38,8 +49,10 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
         this.damage = TAXI_DAMAGE;
     }
 
-    /*
-    method for taxi movement when not damaged
+    /**
+     * Moves the taxi based on user input.
+     *
+     * @param input The current keyboard input
      */
     @Override
     public void move(Input input) {
@@ -59,6 +72,11 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
         }
     }
 
+    /**
+     * Moves the taxi vertically based on game world scrolling.
+     *
+     * @param moveDown true if the game world is scrolling down, false otherwise
+     */
     @Override
     public void moveVertically(boolean moveDown) {
         if (!hasDriver && moveDown) {
@@ -66,6 +84,9 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
         }
     }
 
+    /**
+     * Updates the taxi's state, including collision timeouts and power-ups.
+     */
     @Override
     public void update() {
         if (collisionTimeout > 0) {
@@ -95,8 +116,8 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
         }
     }
 
-    /*
-    method to draw taxi in both damaged state and normal state
+    /**
+     * Draws the taxi on the game screen.
      */
     @Override
     public void draw() {
@@ -107,8 +128,10 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
         }
     }
 
-    /*
-    method for taking damage and applying power-ups to taxi
+    /**
+     * Handles collision with another game entity.
+     *
+     * @param other The other entity involved in the collision
      */
     @Override
     public void handleCollision(GameEntity other) {
@@ -131,6 +154,11 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
         }
     }
 
+    /**
+     * Applies damage to the taxi.
+     *
+     * @param amount The amount of damage to apply
+     */
     @Override
     public void takeDamage(double amount) {
         if (invincibilityFrames == 0 && collisionTimeout == 0) {
@@ -155,15 +183,27 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
         hasDriver = false;
     }
 
+    /**
+     * Activates invincibility for the taxi.
+     */
     public void activateInvincibility() {
         invincibilityFrames = INVINCIBILITY_FRAMES;
     }
 
+    /**
+     * Activates the coin power for the taxi.
+     */
     public void activateCoinPower() {
         coinPowerActive = true;
         coinPowerFrames = 0;
     }
 
+    /**
+     * Attempts to pick up a passenger.
+     *
+     * @param passenger The passenger to pick up
+     * @return true if the passenger was successfully picked up, false otherwise
+     */
     public boolean pickupPassenger(Passenger passenger) {
         if (currentPassenger == null && !isMoving && hasDriver) {
             currentPassenger = passenger;
@@ -173,8 +213,11 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
         return false;
     }
 
-    /*
-    method to ensure drop off only occurs when taxi is not moving
+    /**
+     * Checks if the taxi can drop off its current passenger at the given flag.
+     *
+     * @param flag The trip end flag to check against
+     * @return true if the taxi can drop off the passenger, false otherwise
      */
     public boolean canDropOffPassenger(TripEndFlag flag) {
         if (currentPassenger != null && !isMoving()) {
@@ -184,52 +227,105 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
         return false;
     }
 
+    /**
+     * Drops off the current passenger.
+     *
+     * @return The passenger that was dropped off
+     */
     public Passenger dropOffPassenger() {
         Passenger passenger = currentPassenger;
         setCurrentPassenger(null);
         return passenger;
     }
 
-
     //getters and setters
+    /**
+     * Gets the current health of the taxi.
+     *
+     * @return The current health value
+     */
     @Override
     public double getHealth() {
         return health;
     }
 
+    /**
+     * Checks if the taxi is damaged.
+     *
+     * @return true if the taxi is damaged, false otherwise
+     */
     public boolean isDamaged() {
         return isDamaged;
     }
 
+    /**
+     * Checks if the taxi has an active coin power.
+     *
+     * @return true if the coin power is active, false otherwise
+     */
     public boolean hasCoinPower() {
         return coinPowerActive;
     }
 
+    /**
+     * Gets the number of frames the coin power has been active.
+     *
+     * @return The number of active coin power frames
+     */
     public int getCoinPowerFrames() {
         return coinPowerFrames;
     }
 
+    /**
+     * Gets the current passenger in the taxi.
+     *
+     * @return The current passenger, or null if there is none
+     */
     public Passenger getCurrentPassenger() {
         return currentPassenger;
     }
 
+    /**
+     * Sets the current passenger in the taxi.
+     *
+     * @param passenger The passenger to set as current
+     */
     public void setCurrentPassenger(Passenger passenger) {
         this.currentPassenger = passenger;
     }
 
+    /**
+     * Checks if the taxi has a driver.
+     *
+     * @return true if the taxi has a driver, false otherwise
+     */
     public boolean hasDriver() {
         return hasDriver;
     }
 
+    /**
+     * Sets whether the taxi has a driver.
+     *
+     * @param hasDriver The new driver state
+     */
     public void setHasDriver(boolean hasDriver) {
         this.hasDriver = hasDriver;
     }
 
-
+    /**
+     * Checks if the taxi is currently moving.
+     *
+     * @return true if the taxi is moving, false otherwise
+     */
     public boolean isMoving() {
         return isMoving;
     }
 
+    /**
+     * Gets the damage this taxi can inflict on other entities.
+     *
+     * @return The damage value
+     */
     @Override
     public int getDamage() {
         return damage;

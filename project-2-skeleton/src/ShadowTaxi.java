@@ -77,8 +77,12 @@ public class ShadowTaxi extends AbstractGame {
         GAME_END
     }
 
-    /*
-    Constructor that creates a ShadowTaxi object with game and message properties files
+    /**
+     * Constructs a new ShadowTaxi game instance.
+     * Initializes game properties, loads resources, and sets up the initial game state.
+     *
+     * @param gameProps Properties containing game settings and resource paths
+     * @param messageProps Properties containing message strings for the game
      */
     public ShadowTaxi(Properties gameProps, Properties messageProps) {
         super(Integer.parseInt(gameProps.getProperty("window.width")),
@@ -1065,6 +1069,12 @@ public class ShadowTaxi extends AbstractGame {
         }
     }
 
+    /**
+     * The main entry point for the ShadowTaxi game.
+     * Loads game properties and message properties, creates a new ShadowTaxi instance, and starts the game.
+     *
+     * @param args Command line arguments (not used)
+     */
     public static void main(String[] args) {
         Properties game_props = IOUtils.readPropertiesFile("res/app.properties");
         Properties message_props = IOUtils.readPropertiesFile("res/message_en.properties");
