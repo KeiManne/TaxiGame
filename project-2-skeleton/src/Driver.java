@@ -86,9 +86,6 @@ public class Driver extends MovableEntity implements Damageable, Collidable {
         if (invincibilityFrames == 0) {
             health -= amount;
             collisionTimeout = COLLISION_TIMEOUT;
-            if (health <= 0) {
-                // Handle driver "death" or game over
-            }
         }
     }
 
@@ -142,14 +139,6 @@ public class Driver extends MovableEntity implements Damageable, Collidable {
         return currentTaxi != null;
     }
 
-    public Taxi getCurrentTaxi() {
-        return currentTaxi;
-    }
-
-    public void setCurrentTaxi(Taxi taxi) {
-        this.currentTaxi = taxi;
-    }
-
     @Override
     public int getDamage() {
         return damage;
@@ -159,5 +148,4 @@ public class Driver extends MovableEntity implements Damageable, Collidable {
         this.collisionTimeout = amount;
 
     }
-
 }

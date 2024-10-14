@@ -3,12 +3,14 @@ import bagel.util.Point;
 public class Car extends IndependentlyMovableEntity implements Damageable, Collidable {
     private static final int COLLISION_TIMEOUT = 200;
     private static final int SEPARATION_FRAMES = 10;
+    private static final double MIN_SPEED = 2.0;
+    private static final double MAX_SPEED = 5.0;
+    private static final int DAMAGE_POINTS = 50;
+    private static final double CAR_HEALTH = 100;
 
     private double health;
     private int collisionTimeout;
-    private static final double MIN_SPEED = 2.0;
-    private static final double MAX_SPEED = 5.0;
-    private int damage = 50; //edited taxi damage to be 50, otherwise on collisions cars and enemy cars are immediately destroyed
+    private int damage;
     private boolean isDamaged;
     private int separationFramesLeft;
     private Point separationDirection;
@@ -16,8 +18,9 @@ public class Car extends IndependentlyMovableEntity implements Damageable, Colli
 
     public Car(double x, double y, String imagePath, double radius) {
         super(x, y, imagePath, radius, 0, generateRandomSpeed());
-        this.health = 100.0;
+        this.health = CAR_HEALTH;
         this.isDamaged = false;
+        this.damage = DAMAGE_POINTS;
     }
 
     private static double generateRandomSpeed() {
@@ -72,7 +75,7 @@ public class Car extends IndependentlyMovableEntity implements Damageable, Colli
 
         if (isColliding) {
             if (moveDown) {
-                position = new Point(position.x, position.y + 5);
+                position = new Point(position.x, position.y + SCROLL_SPEED);
             }
         }
 

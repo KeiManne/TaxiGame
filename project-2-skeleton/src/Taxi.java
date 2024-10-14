@@ -7,8 +7,9 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
     private static final int INVINCIBILITY_FRAMES = 1000;
     private static final int MAX_COIN_POWER_FRAMES = 500;
     private static final int SEPARATION_FRAMES = 10;
-    private int separationFramesLeft;
-
+    private static final int TAXI_HEALTH = 100;
+    private static final int TAXI_DAMAGE = 25;
+    //edited taxi damage to be 25, otherwise on collisions cars and enemy cars are immediately destroyed
 
     private double health;
     private boolean isDamaged;
@@ -21,11 +22,12 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
     private boolean isMoving;
     private int damage;
     private Point separationDirection;
+    private int separationFramesLeft;
 
 
     public Taxi(double x, double y, String imagePath, double radius, double speedX, double speedY) {
         super(x, y, imagePath, radius, speedX, speedY);
-        this.health = 100.0;
+        this.health = TAXI_HEALTH;
         this.isDamaged = false;
         this.collisionTimeout = 0;
         this.invincibilityFrames = 0;
@@ -33,7 +35,7 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
         this.coinPowerFrames = 0;
         this.hasDriver = false;
         this.currentPassenger = null;
-        this.damage = 25;
+        this.damage = TAXI_DAMAGE;
     }
 
     /*

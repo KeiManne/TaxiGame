@@ -2,12 +2,10 @@ import bagel.util.Point;
 
 public class TripEndFlag extends GameEntity {
     private boolean isVisible;
-    private double speedY;
 
     public TripEndFlag(double x, double y, String imagePath, double radius) {
         super(x, y, imagePath, radius);
         this.isVisible = false;
-        this.speedY = 5;
     }
 
     @Override
@@ -25,7 +23,7 @@ public class TripEndFlag extends GameEntity {
 
     public void moveVertically(boolean moveDown) {
         if (moveDown) {
-            position = new Point(position.x, position.y + speedY);
+            position = new Point(position.x, position.y + SCROLL_SPEED);
         }
     }
 

@@ -1,7 +1,6 @@
 import bagel.util.Point;
 
 public class InvinciblePower extends GameEntity implements PowerUp {
-    public static final int INVINCIBILITY_DURATION = 1000;
     private boolean isActive;
     private double speedY;
 
@@ -40,11 +39,6 @@ public class InvinciblePower extends GameEntity implements PowerUp {
     }
 
     //getters and setters
-    @Override
-    public boolean isActive() {
-        return isActive;
-    }
-
     @Override
     public void setActive(boolean active) {
         isActive = active;

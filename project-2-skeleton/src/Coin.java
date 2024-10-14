@@ -2,7 +2,6 @@ import bagel.util.Point;
 
 public class Coin extends GameEntity implements PowerUp {
     private boolean isActive;
-    private final int SCROLL_SPEED = 5;
 
     public Coin(double x, double y, String imagePath, double radius) {
         super(x, y, imagePath, radius);
@@ -45,14 +44,7 @@ public class Coin extends GameEntity implements PowerUp {
 
     //getters and setters
     @Override
-    public boolean isActive() {
-        return isActive;
-    }
-
-    @Override
     public void setActive(boolean active) {
         isActive = active;
     }
-
-
 }

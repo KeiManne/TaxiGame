@@ -5,7 +5,6 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
     private static final double PRIORITY_TEXT_OFFSET_X = 30;
     private static final double EARNINGS_TEXT_OFFSET_X = 100;
     private static final int COLLISION_TIMEOUT = 200;
-    private static final int SCROLL_SPEED = 5;
     private static final double STARTING_HEALTH = 100.0;
     private static final int SEPARATION_FRAMES = 10;
 
@@ -154,8 +153,6 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         }
     }
 
-
-
     //getters and setters
     @Override
     public double getHealth() {
@@ -185,7 +182,6 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
             this.isWalking = false;
         }
     }
-
 
     public boolean isDroppedOff() {
         return isDroppedOff;

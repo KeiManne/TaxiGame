@@ -648,6 +648,9 @@ public class ShadowTaxi extends AbstractGame {
         collisionEffects.add(new CollisionEffect(x, y, imagePath, type));
     }
 
+    /*
+    method to render all game entities using .draw() methods
+     */
     private void drawGameObjects() {
         taxi.draw();
         if (taxiOld != null) {taxiOld.draw();}
@@ -688,6 +691,9 @@ public class ShadowTaxi extends AbstractGame {
         }
     }
 
+    /*
+    method to draw game information - adapted from my project 1 implementation
+     */
     private void drawGameInfo() {
         String payText = MESSAGE_PROPS.getProperty("gamePlay.earnings") + String.format("%.2f", totalScore);
         FONT_GAMEPLAY.drawString(payText,
@@ -746,6 +752,9 @@ public class ShadowTaxi extends AbstractGame {
         return minHealth;
     }
 
+    /*
+    method to draw trip information - adapted from my project 1 implementation
+     */
     private void drawTripInfo() {
         double tripInfoX = Double.parseDouble(GAME_PROPS.getProperty("gamePlay.tripInfo.x"));
         double tripInfoY = Double.parseDouble(GAME_PROPS.getProperty("gamePlay.tripInfo.y"));
@@ -910,6 +919,9 @@ public class ShadowTaxi extends AbstractGame {
         }
     }
 
+    /*
+    method to update trip scoring after trip completion
+     */
     private void completeTripAndUpdateInfo(Passenger passenger, TripEndFlag flag) {
         double tripEarnings = calculateTripEarnings(passenger, flag);
         totalScore += tripEarnings;
@@ -1052,7 +1064,6 @@ public class ShadowTaxi extends AbstractGame {
             this.score = score;
         }
     }
-
 
     public static void main(String[] args) {
         Properties game_props = IOUtils.readPropertiesFile("res/app.properties");

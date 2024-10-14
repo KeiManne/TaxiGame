@@ -2,6 +2,7 @@ import bagel.Image;
 import bagel.util.Point;
 
 public abstract class GameEntity implements Collidable {
+    protected final int SCROLL_SPEED = 5;
     protected Point position;
     protected Image image;
     protected double radius;

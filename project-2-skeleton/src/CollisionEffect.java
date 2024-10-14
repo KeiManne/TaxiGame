@@ -31,7 +31,7 @@ public class CollisionEffect extends GameEntity {
 
     public void moveVertically(boolean moveDown) {
         if (moveDown) {
-            position = new Point(position.x, position.y + 5);
+            position = new Point(position.x, position.y + SCROLL_SPEED);
         }
     }
 
