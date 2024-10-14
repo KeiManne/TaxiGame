@@ -94,13 +94,13 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
     public void draw() {
         if (!isDroppedOff() && !isPickedUp) {
             image.draw(position.x, position.y);
-            if (!isPickedUp()) {
+            if (!isPickedUp() && !isFollowingDriver()) {
                 font.drawString(String.valueOf(priority), position.x - PRIORITY_TEXT_OFFSET_X, position.y);
                 font.drawString(String.format("%.1f", calculateExpectedEarnings()),
                         position.x - EARNINGS_TEXT_OFFSET_X, position.y);
             }
         }
-        if (isFollowingDriver) {
+        if (isFollowingDriver()) {
             image.draw(position.x, position.y);
         }
     }
@@ -148,6 +148,14 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         }
     }
 
+    public void followDriver(Point driverPosition) {
+        if (isFollowingDriver) {
+            moveTowards(driverPosition);
+        }
+    }
+
+
+
     //getters and setters
     @Override
     public double getHealth() {
@@ -176,7 +184,6 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         if (pickedUp) {
             this.isWalking = false;
         }
-        System.out.println("Passenger picked up: " + pickedUp);
     }
 
 

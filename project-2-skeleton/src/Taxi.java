@@ -147,8 +147,8 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
     private void ejectOccupants() {
         if (currentPassenger != null) {
             currentPassenger.setPosition(new Point(position.x - 100, position.y));
-            //currentPassenger.setPickedUp(false);
-            //currentPassenger = null;
+            currentPassenger.setFollowingDriver(true);
+            currentPassenger.setPickedUp(false);
         }
         hasDriver = false;
     }

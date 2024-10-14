@@ -356,7 +356,11 @@ public class ShadowTaxi extends AbstractGame {
 
         for (Passenger passenger : passengers) {
             passenger.update();
-            if (!passenger.isPickedUp() && !passenger.isDroppedOff()) {
+            if (passenger.isFollowingDriver()) {
+                passenger.setWalking(true);
+                passenger.setTargetPosition(driver.getPosition());
+                passenger.followDriver(driver.getPosition());
+            } else if (!passenger.isPickedUp() && !passenger.isDroppedOff()) {
                 passenger.moveVertically(moveDown);
             }
             passenger.updatePriority(currentWeather);
@@ -401,7 +405,7 @@ public class ShadowTaxi extends AbstractGame {
             spawnCar();
         }
 
-        if (MiscUtils.canSpawn(10)) { //1 in 400 chance to spawn enemy car
+        if (MiscUtils.canSpawn(400)) { //1 in 400 chance to spawn enemy car
             spawnEnemyCar();
         }
 
@@ -796,6 +800,17 @@ public class ShadowTaxi extends AbstractGame {
             if (driver.getPosition().distanceTo(taxi.getPosition()) <= 10 && !taxi.isDamaged()) {
                 driver.enterTaxi(taxi);
                 taxi.setHasDriver(true);
+
+                //check if there's a passenger following the driver
+                for (Passenger passenger : passengers) {
+                    if (passenger.isFollowingDriver()) {
+                        passenger.setWalking(false);
+                        passenger.setPickedUp(true);
+                        passenger.setFollowingDriver(false);
+                        taxi.setCurrentPassenger(passenger);
+                        break;
+                    }
+                }
             }
         } else if (taxi.isDamaged()) {
             driver.exitTaxi();
@@ -825,7 +840,6 @@ public class ShadowTaxi extends AbstractGame {
                     Double.parseDouble(GAME_PROPS.getProperty("gameObjects.taxi.speedY")));
             taxi.setHasDriver(false);
         }
-
     }
 
     private void handlePassengerPickup() {
