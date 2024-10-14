@@ -5,12 +5,16 @@ public class Driver extends MovableEntity implements Damageable, Collidable {
     private static final double INITIAL_HEALTH = 100.0;
     private static final int INVINCIBILITY_DURATION = 1000;
     private static final int COLLISION_TIMEOUT = 200;
+    private static final int SEPARATION_FRAMES = 10;
 
     private double health;
     private Taxi currentTaxi;
     private int invincibilityFrames;
     private int collisionTimeout;
     private int damage;
+    private int separationFramesLeft;
+    private Point separationDirection;
+
 
     public Driver(double x, double y, String imagePath, double radius, double speedX, double speedY) {
         super(x, y, imagePath, radius, speedX, speedY);
@@ -52,7 +56,17 @@ public class Driver extends MovableEntity implements Damageable, Collidable {
         if (invincibilityFrames > 0) {
             invincibilityFrames--;
         }
-        if (collisionTimeout > 0) collisionTimeout--;
+        if (collisionTimeout > 0) {
+            collisionTimeout--;
+
+            if (separationFramesLeft > 0) {
+                position = new Point(
+                        position.x + separationDirection.x,
+                        position.y + separationDirection.y
+                );
+                separationFramesLeft--;
+            }
+        }
     }
 
 
@@ -80,13 +94,23 @@ public class Driver extends MovableEntity implements Damageable, Collidable {
 
     @Override
     public void handleCollision(GameEntity other) {
-        if ( collisionTimeout > 0) return;
+        if (collisionTimeout > 0) return;
+
         if (other instanceof Damageable) {
-            takeDamage(((Damageable) other).getDamage() * 1);
+            takeDamage(((Damageable) other).getDamage());
+            collisionTimeout = COLLISION_TIMEOUT;
+            separationFramesLeft = SEPARATION_FRAMES;
+
+            //determine separation direction
+            separationDirection = new Point(
+                    position.x < other.getPosition().x ? -2 : 2,
+                    position.y < other.getPosition().y ? -2 : 2
+            );
         } else if (other instanceof PowerUp) {
             ((PowerUp) other).applyEffect(this);
         }
     }
+
 
     public boolean enterTaxi(Taxi taxi) {
         if (taxi != null && !taxi.isDamaged() && position.distanceTo(taxi.getPosition()) <= 10) {

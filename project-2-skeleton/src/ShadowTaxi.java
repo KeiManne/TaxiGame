@@ -3,6 +3,7 @@ import bagel.util.Colour;
 import bagel.util.Point;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
@@ -362,12 +363,12 @@ public class ShadowTaxi extends AbstractGame {
         }
 
         for (Car car : cars) {
-            car.update();
+            car.update(moveDown);
             car.moveIndependently();
         }
 
         for (EnemyCar enemyCar : enemyCars) {
-            enemyCar.update();
+            enemyCar.update(moveDown);
             enemyCar.moveIndependently();
             //1 in 300 chance to spawn fireball
             if (MiscUtils.canSpawn(300)) {
@@ -400,7 +401,7 @@ public class ShadowTaxi extends AbstractGame {
             spawnCar();
         }
 
-        if (MiscUtils.canSpawn(400)) { //1 in 400 chance to spawn enemy car
+        if (MiscUtils.canSpawn(10)) { //1 in 400 chance to spawn enemy car
             spawnEnemyCar();
         }
 
@@ -412,7 +413,6 @@ public class ShadowTaxi extends AbstractGame {
 
         handleDriverTaxiInteraction();
         regenerateTaxiIfNeeded();
-
     }
 
     /*
@@ -515,6 +515,103 @@ public class ShadowTaxi extends AbstractGame {
                         passenger.handleCollision(fireball);
                         fireballs.remove(fireball);
                         addCollisionEffect(passenger.getPosition().x, passenger.getPosition().y, CollisionEffect.EffectType.BLOOD);
+                    }
+                }
+            }
+        }
+
+        //handle fireball collisiosn
+        Iterator<Fireball> fireballIterator = fireballs.iterator();
+        while (fireballIterator.hasNext()) {
+            Fireball fireball = fireballIterator.next();
+
+            // Check collision with Taxi
+            if (taxi.collidesWith(fireball)) {
+                fireball.handleCollision(taxi);
+                fireballIterator.remove();
+                addCollisionEffect(taxi.getPosition().x, taxi.getPosition().y, CollisionEffect.EffectType.SMOKE);
+            }
+
+            // Check collision with Driver (when not in taxi)
+            if (!driver.isInTaxi() && driver.collidesWith(fireball)) {
+                fireball.handleCollision(driver);
+                fireballIterator.remove();
+                addCollisionEffect(driver.getPosition().x,driver.getPosition().y, CollisionEffect.EffectType.BLOOD);
+            }
+
+            // Check collision with Passengers
+            for (Passenger passenger : passengers) {
+                if (!passenger.isPickedUp() && !passenger.isDroppedOff() && passenger.collidesWith(fireball)) {
+                    fireball.handleCollision(passenger);
+                    fireballIterator.remove();
+                    addCollisionEffect(passenger.getPosition().x, passenger.getPosition().y, CollisionEffect.EffectType.BLOOD);
+                    break;
+                }
+            }
+        }
+
+        //handle Car-to-Car and Car-to-EnemyCar collisions
+        //use iterator to avoid concurrent modification error
+        Iterator<Car> carIterator = cars.iterator();
+        while (carIterator.hasNext()) {
+            Car car = carIterator.next();
+
+            if (car.getHealth() <= 0) {
+                addCollisionEffect(car.getPosition().x, car.getPosition().y, CollisionEffect.EffectType.FIRE);
+                carIterator.remove();
+                continue;
+            }
+
+            for (int i = 0; i < cars.size(); i++) {
+                Car car1 = cars.get(i);
+
+                //check collisions with other cars
+                for (int j = i + 1; j < cars.size(); j++) {
+                    Car car2 = cars.get(j);
+                    if (car1.collidesWith(car2)) {
+                        car1.handleCollision(car2);
+                        car2.handleCollision(car1);
+                        if (!car1.isInCollisionTimeout() && !car2.isInCollisionTimeout()) {
+                            addCollisionEffect(car1.getPosition().x, car1.getPosition().y, CollisionEffect.EffectType.SMOKE);
+                        }
+                    }
+                }
+
+                //check collisions with enemy cars
+                for (EnemyCar enemyCar : enemyCars) {
+                    if (car1.collidesWith(enemyCar)) {
+                        car1.handleCollision(enemyCar);
+                        enemyCar.handleCollision(car1);
+                        if (!car1.isInCollisionTimeout() && !enemyCar.isInCollisionTimeout()) {
+                            addCollisionEffect(car1.getPosition().x, car1.getPosition().y, CollisionEffect.EffectType.SMOKE);
+                        }
+                    }
+                }
+            }
+        }
+
+        //handle EnemyCar-to-EnemyCar collisions
+        Iterator<EnemyCar> enemyCarIterator = enemyCars.iterator();
+        while (enemyCarIterator.hasNext()) {
+            EnemyCar enemyCar = enemyCarIterator.next();
+
+            if (enemyCar.getHealth() <= 0) {
+                addCollisionEffect(enemyCar.getPosition().x, enemyCar.getPosition().y, CollisionEffect.EffectType.FIRE);
+                enemyCarIterator.remove();
+                continue;
+            }
+
+            for (int i = 0; i < enemyCars.size(); i++) {
+                EnemyCar enemyCar1 = enemyCars.get(i);
+
+                for (int j = i + 1; j < enemyCars.size(); j++) {
+                    EnemyCar enemyCar2 = enemyCars.get(j);
+                    if (enemyCar1.collidesWith(enemyCar2)) {
+                        enemyCar1.handleCollision(enemyCar2);
+                        enemyCar2.handleCollision(enemyCar1);
+                        if (!enemyCar1.isInCollisionTimeout() && !enemyCar2.isInCollisionTimeout()) {
+                            addCollisionEffect(enemyCar1.getPosition().x, enemyCar1.getPosition().y, CollisionEffect.EffectType.SMOKE);
+                        }
                     }
                 }
             }
@@ -726,12 +823,13 @@ public class ShadowTaxi extends AbstractGame {
                     Double.parseDouble(GAME_PROPS.getProperty("gameObjects.taxi.radius")),
                     Double.parseDouble(GAME_PROPS.getProperty("gameObjects.taxi.speedX")),
                     Double.parseDouble(GAME_PROPS.getProperty("gameObjects.taxi.speedY")));
+            taxi.setHasDriver(false);
         }
 
     }
 
     private void handlePassengerPickup() {
-        if (taxi.getCurrentPassenger() == null && !taxi.isMoving()) {
+        if (taxi.getCurrentPassenger() == null && !taxi.isMoving() && taxi.hasDriver()) {
             for (Passenger passenger : passengers) {
                 if (!passenger.isPickedUp() && !passenger.isDroppedOff()) {
                     double distance = taxi.getPosition().distanceTo(passenger.getPosition());

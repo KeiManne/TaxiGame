@@ -1,17 +1,23 @@
-import bagel.*;
 import bagel.util.Point;
 
-public class Car extends IndependentlyMovableEntity implements Damageable {
+public class Car extends IndependentlyMovableEntity implements Damageable, Collidable {
     private static final int COLLISION_TIMEOUT = 200;
+    private static final int SEPARATION_FRAMES = 10;
+
     private double health;
     private int collisionTimeout;
     private static final double MIN_SPEED = 2.0;
     private static final double MAX_SPEED = 5.0;
-    private int damage = 50;
+    private int damage = 50; //edited taxi damage to be 50, otherwise on collisions cars and enemy cars are immediately destroyed
+    private boolean isDamaged;
+    private int separationFramesLeft;
+    private Point separationDirection;
+    private boolean isColliding;
 
     public Car(double x, double y, String imagePath, double radius) {
         super(x, y, imagePath, radius, 0, generateRandomSpeed());
         this.health = 100.0;
+        this.isDamaged = false;
     }
 
     private static double generateRandomSpeed() {
@@ -20,13 +26,59 @@ public class Car extends IndependentlyMovableEntity implements Damageable {
 
     @Override
     public void moveIndependently() {
-        position = new Point(position.x, position.y - speedY);
+        if (!isColliding) {
+            position = new Point(position.x, position.y - speedY);
+        }
     }
 
     @Override
     public void update() {
-        if (collisionTimeout > 0) collisionTimeout--;
-        moveIndependently();
+        if (collisionTimeout > 0) {
+            collisionTimeout--;
+
+            if (separationFramesLeft > 0) {
+                position = new Point(
+                        position.x + separationDirection.x,
+                        position.y + separationDirection.y
+                );
+                separationFramesLeft--;
+            } else if (collisionTimeout == 0) {
+                //collision timeout ended, choose new random speed
+                speedY = generateRandomSpeed();
+                isColliding = false;
+            }
+        }
+        if (!isColliding) {
+            moveIndependently();
+        }
+    }
+
+    public void update(boolean moveDown) {
+        if (collisionTimeout > 0) {
+            collisionTimeout--;
+
+            if (separationFramesLeft > 0) {
+                position = new Point(
+                        position.x + separationDirection.x,
+                        position.y + separationDirection.y
+                );
+                separationFramesLeft--;
+            } else if (collisionTimeout == 0) {
+                //collision timeout ended, choose new random speed
+                speedY = generateRandomSpeed();
+                isColliding = false;
+            }
+        }
+
+        if (isColliding) {
+            if (moveDown) {
+                position = new Point(position.x, position.y + 5);
+            }
+        }
+
+        if (!isColliding) {
+            moveIndependently();
+        }
     }
 
     @Override
@@ -39,16 +91,26 @@ public class Car extends IndependentlyMovableEntity implements Damageable {
         if (collisionTimeout > 0) return;
 
         if (other instanceof Damageable) {
-            takeDamage(((Damageable) other).getDamage() * 1);
+            takeDamage(((Damageable) other).getDamage());
             collisionTimeout = COLLISION_TIMEOUT;
+            separationFramesLeft = SEPARATION_FRAMES;
+            isColliding = true;
+
+            //determine separation direction
+            if (this.position.y < other.getPosition().y) {
+                separationDirection = new Point(0, 1);
+            } else {
+                separationDirection = new Point(0, -1);
+            }
         }
     }
+
 
     @Override
     public void takeDamage(double amount) {
         health -= amount;
         if (health <= 0) {
-            //handle car destruction with explosion and dead image
+            isDamaged = true;
         }
     }
 
@@ -61,5 +123,13 @@ public class Car extends IndependentlyMovableEntity implements Damageable {
     @Override
     public int getDamage() {
         return damage;
+    }
+
+    public boolean isInCollisionTimeout() {
+        return collisionTimeout > 0;
+    }
+
+    public boolean isDamaged() {
+        return isDamaged;
     }
 }

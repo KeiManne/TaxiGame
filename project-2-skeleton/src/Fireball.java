@@ -1,6 +1,6 @@
 import bagel.util.Point;
 
-public class Fireball extends IndependentlyMovableEntity implements Collidable {
+public class Fireball extends IndependentlyMovableEntity implements Collidable, Damageable {
     private static final double DAMAGE = 20.0;
 
     public Fireball(double x, double y, String imagePath, double radius, double speedX, double speedY) {
@@ -14,7 +14,6 @@ public class Fireball extends IndependentlyMovableEntity implements Collidable {
 
     @Override
     public void update() {
-        moveIndependently();
     }
 
     @Override
@@ -27,5 +26,21 @@ public class Fireball extends IndependentlyMovableEntity implements Collidable {
         if (other instanceof Damageable) {
             ((Damageable) other).takeDamage(DAMAGE);
         }
+    }
+
+    @Override
+    public void takeDamage(double amount) {
+        //damage is not relevant for fireball
+    }
+
+    @Override
+    public double getHealth() {
+        //health is not relevant for fireball
+        return 0;
+    }
+
+    @Override
+    public int getDamage() {
+        return (int) DAMAGE;
     }
 }

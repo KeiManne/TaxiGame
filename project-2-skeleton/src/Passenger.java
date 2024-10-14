@@ -7,6 +7,7 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
     private static final int COLLISION_TIMEOUT = 200;
     private static final int SCROLL_SPEED = 5;
     private static final double STARTING_HEALTH = 100.0;
+    private static final int SEPARATION_FRAMES = 10;
 
     private int priority;
     private final double endX;
@@ -23,6 +24,9 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
     private boolean hasUmbrella;
     private double health;
     private int collisionTimeout;
+    private int separationFramesLeft;
+    private Point separationDirection;
+    private boolean isFollowingDriver;
 
 
     public Passenger(double x, double y, int priority, double endX, double yDistance, String imagePath,
@@ -56,15 +60,11 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
             if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
                 position = targetPosition;
                 isWalking = false;
-                System.out.println("Passenger reached target at " + position);
             } else {
                 double moveX = Math.signum(dx) * Math.min(Math.abs(dx), 1);
                 double moveY = Math.signum(dy) * Math.min(Math.abs(dy), 1);
                 position = new Point(position.x + moveX, position.y + moveY);
-                System.out.println("Passenger moved to " + position + ", Target: " + targetPosition);
             }
-        } else {
-            System.out.println("Passenger not walking or no target set. Walking: " + isWalking + ", Target: " + targetPosition);
         }
     }
 
@@ -77,7 +77,17 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
 
     @Override
     public void update() {
-        if (collisionTimeout > 0) collisionTimeout--;
+        if (collisionTimeout > 0) {
+            collisionTimeout--;
+
+            if (separationFramesLeft > 0) {
+                position = new Point(
+                        position.x + separationDirection.x,
+                        position.y + separationDirection.y
+                );
+                separationFramesLeft--;
+            }
+        }
     }
 
     @Override
@@ -89,6 +99,9 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
                 font.drawString(String.format("%.1f", calculateExpectedEarnings()),
                         position.x - EARNINGS_TEXT_OFFSET_X, position.y);
             }
+        }
+        if (isFollowingDriver) {
+            image.draw(position.x, position.y);
         }
     }
 
@@ -113,13 +126,21 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
 
     @Override
     public void handleCollision(GameEntity other) {
-        if ( collisionTimeout > 0) return;
+        if (collisionTimeout > 0) return;
 
         if (other instanceof Car || other instanceof EnemyCar || other instanceof Fireball) {
-            takeDamage(((Damageable) other).getDamage() * 1);
+            takeDamage(((Damageable) other).getDamage());
             collisionTimeout = COLLISION_TIMEOUT;
+            separationFramesLeft = SEPARATION_FRAMES;
+
+            //determine separation direction
+            separationDirection = new Point(
+                    position.x < other.getPosition().x ? -2 : 2,
+                    position.y < other.getPosition().y ? -2 : 2
+            );
         }
     }
+
 
     public void updatePriority(WeatherCondition.WeatherType currentWeather) {
         if (currentWeather == WeatherCondition.WeatherType.RAINING && !hasUmbrella) {
@@ -139,7 +160,6 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
 
     public void setPosition(Point newPosition) {
         super.setPosition(newPosition);
-        System.out.println("Passenger position set to: " + newPosition);
     }
 
 
@@ -183,11 +203,18 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
 
     public void setWalking(boolean walking) {
         this.isWalking = walking;
-        System.out.println("Passenger walking set to: " + walking);
     }
 
     @Override
     public int getDamage() {
         return damage;
     }
+
+    public void setFollowingDriver(boolean followingDriver) {
+        this.isFollowingDriver = followingDriver;
+    }
+    public boolean isFollowingDriver() {
+        return isFollowingDriver;
+    }
+
 }

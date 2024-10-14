@@ -6,6 +6,9 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
     private static final int COLLISION_TIMEOUT = 200;
     private static final int INVINCIBILITY_FRAMES = 1000;
     private static final int MAX_COIN_POWER_FRAMES = 500;
+    private static final int SEPARATION_FRAMES = 10;
+    private int separationFramesLeft;
+
 
     private double health;
     private boolean isDamaged;
@@ -17,6 +20,7 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
     private boolean hasDriver;
     private boolean isMoving;
     private int damage;
+    private Point separationDirection;
 
 
     public Taxi(double x, double y, String imagePath, double radius, double speedX, double speedY) {
@@ -29,7 +33,7 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
         this.coinPowerFrames = 0;
         this.hasDriver = false;
         this.currentPassenger = null;
-        this.damage = 100;
+        this.damage = 25;
     }
 
     /*
@@ -62,7 +66,16 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
 
     @Override
     public void update() {
-        if (collisionTimeout > 0) collisionTimeout--;
+        if (collisionTimeout > 0) {
+            collisionTimeout--;
+            if (separationFramesLeft > 0) {
+                position = new Point(
+                        position.x + separationDirection.x,
+                        position.y + separationDirection.y
+                );
+                separationFramesLeft--;
+            }
+        }
         if (invincibilityFrames > 0) invincibilityFrames--;
         if (coinPowerActive) {
             coinPowerFrames++;
@@ -98,9 +111,19 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
     @Override
     public void handleCollision(GameEntity other) {
         //only collide if not active invincibility or recent collision
-        if (invincibilityFrames > 0 || collisionTimeout > 0) return;
+        if (collisionTimeout > 0) return;
+
         if (other instanceof Damageable) {
-            takeDamage(((Damageable) other).getDamage() * 1);
+            takeDamage(((Damageable) other).getDamage());
+            collisionTimeout = COLLISION_TIMEOUT;
+            separationFramesLeft = SEPARATION_FRAMES;
+
+            //determine separation direction
+            if (this.position.y < other.getPosition().y) {
+                separationDirection = new Point(0, -1); // Taxi moves up
+            } else {
+                separationDirection = new Point(0, 1); // Taxi moves down
+            }
         } else if (other instanceof PowerUp) {
             ((PowerUp) other).applyEffect(this);
         }
@@ -125,7 +148,7 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
         if (currentPassenger != null) {
             currentPassenger.setPosition(new Point(position.x - 100, position.y));
             //currentPassenger.setPickedUp(false);
-            currentPassenger = null;
+            //currentPassenger = null;
         }
         hasDriver = false;
     }
