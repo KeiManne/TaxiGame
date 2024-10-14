@@ -31,7 +31,6 @@ public class ShadowTaxi extends AbstractGame {
     private boolean isWin;
     private String lastTripInfo;
 
-
     //images
     private final Image BACKGROUND_IMAGE_SUNNY;
     private final Image BACKGROUND_IMAGE_RAINING;
@@ -748,9 +747,13 @@ public class ShadowTaxi extends AbstractGame {
      */
     private double getMinPassengerHealth() {
         double minHealth = 100.0;
-        for (Passenger passenger : passengers) {
-            if (passenger.getHealth() < minHealth) {
-                minHealth = passenger.getHealth();
+        if (taxi.getCurrentPassenger() != null) {
+            minHealth = taxi.getCurrentPassenger().getHealth();
+        } else {
+            for (Passenger passenger : passengers) {
+                if (passenger.getHealth() < minHealth) {
+                    minHealth = passenger.getHealth();
+                }
             }
         }
         return minHealth;
