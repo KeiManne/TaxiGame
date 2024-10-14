@@ -11,7 +11,6 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
     private static final int SEPARATION_FRAMES = 10;
     private static final int TAXI_HEALTH = 100;
     private static final int TAXI_DAMAGE = 100;
-    //edited taxi damage to be 25, otherwise on collisions cars and enemy cars are immediately destroyed
 
     private double health;
     private boolean isDamaged;
