@@ -197,7 +197,6 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
 
     public void setTargetPosition(Point target) {
         this.targetPosition = target;
-        System.out.println("Passenger target set to: " + target);
     }
 
     public Point getTargetPosition() {

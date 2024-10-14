@@ -794,14 +794,18 @@ public class ShadowTaxi extends AbstractGame {
                 Double.parseDouble(GAME_PROPS.getProperty("gameObjects.enemyCar.radius")));
         enemyCars.add(newEnemyCar);
     }
-
+    /*
+    method to handle driver-taxi interaction upon damage or regeneration
+     */
     private void handleDriverTaxiInteraction() {
+        //on regeneration, if driver collides with taxi...
         if (!driver.isInTaxi()) {
             if (driver.getPosition().distanceTo(taxi.getPosition()) <= 10 && !taxi.isDamaged()) {
                 driver.enterTaxi(taxi);
                 taxi.setHasDriver(true);
 
                 //check if there's a passenger following the driver
+                //if true, set the passenger as current passenger for new taxi
                 for (Passenger passenger : passengers) {
                     if (passenger.isFollowingDriver()) {
                         passenger.setWalking(false);
@@ -819,7 +823,9 @@ public class ShadowTaxi extends AbstractGame {
             driver.setCollisionTimeout(200);
         }
     }
-
+    /*
+    method to regenerate taxi if it is damaged
+     */
     private void regenerateTaxiIfNeeded() {
         if (taxi.isDamaged() && !driver.isInTaxi()) {
             double first = MiscUtils.selectAValue(
@@ -841,7 +847,9 @@ public class ShadowTaxi extends AbstractGame {
             taxi.setHasDriver(false);
         }
     }
-
+    /*
+    method to handle passenger pickup - taken from my project 1 implementation
+     */
     private void handlePassengerPickup() {
         if (taxi.getCurrentPassenger() == null && !taxi.isMoving() && taxi.hasDriver()) {
             for (Passenger passenger : passengers) {
@@ -870,6 +878,9 @@ public class ShadowTaxi extends AbstractGame {
         }
     }
 
+    /*
+    method to handle passenger Dropoff - taken from my project 1 implementation
+     */
     private void handlePassengerDropOff() {
         Passenger currentPassenger = taxi.getCurrentPassenger();
         if (currentPassenger != null && currentPassenger.isPickedUp() && !taxi.isMoving()) {
@@ -904,7 +915,6 @@ public class ShadowTaxi extends AbstractGame {
         totalScore += tripEarnings;
         updateLastTripInfo(passenger, tripEarnings);
         flag.setVisible(false);
-        System.out.println("Passenger dropped off, earnings: " + tripEarnings);
     }
 
     private TripEndFlag getTripEndFlagForPassenger(Passenger passenger) {
@@ -941,7 +951,6 @@ public class ShadowTaxi extends AbstractGame {
         int passengerIndex = passengers.indexOf(passenger);
         if (passengerIndex != -1 && passengerIndex < tripEndFlags.size()) {
             tripEndFlags.get(passengerIndex).setVisible(visible);
-            System.out.println("Trip end flag visibility set to: " + visible);
         }
     }
 
@@ -958,11 +967,10 @@ public class ShadowTaxi extends AbstractGame {
         } else if (currentFrame >= maxFrames || driver.getHealth() <= 0 || getMinPassengerHealth() <= 0) {
             isWin = false;
             endGame();
-        } else if (true) {
-            //add condition for if background scrolls further than the newly regenerated taxi:
+        } else if (!driver.isInTaxi() && taxi.getPosition().y >= WINDOW_HEIGHT && driver.getPosition().y < taxi.getPosition().y) {
             // If the driver walks vertically upwards past the newly generated taxi and the y-coordinate of the
-            // taxi becomes greater than or equal to 768, this is considered as a game loss. On screen, this will
-            // look like the driver moving upwards and the taxi moving out of the window from the bottom.
+            isWin = false;
+            endGame();
         }
     }
 
