@@ -4,13 +4,17 @@ import bagel.util.Point;
 public class Passenger extends MovableEntity implements Damageable, Collidable {
     private static final double PRIORITY_TEXT_OFFSET_X = 30;
     private static final double EARNINGS_TEXT_OFFSET_X = 100;
+    private static final int COLLISION_TIMEOUT = 200;
     private static final int SCROLL_SPEED = 5;
+    private static final double STARTING_HEALTH = 100.0;
 
     private int priority;
+    private final double endX;
     private final double yDistance;
     private final Font font;
     private final double ratePerY;
     private final double[] priorityRates;
+    private final int damage;
     private boolean isPickedUp;
     private boolean isDroppedOff;
     private boolean isWalking;
@@ -18,6 +22,7 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
     private boolean priorityIncreased;
     private boolean hasUmbrella;
     private double health;
+    private int collisionTimeout;
 
 
     public Passenger(double x, double y, int priority, double endX, double yDistance, String imagePath,
@@ -26,6 +31,7 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
                      double speedX, double speedY, boolean hasUmbrella) {
         super(x, y, imagePath, radius, speedX, speedY);
         this.priority = priority;
+        this.endX = endX;
         this.yDistance = yDistance;
         this.font = new Font(fontPath, fontSize);
         this.ratePerY = ratePerY;
@@ -35,7 +41,8 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
         this.isWalking = false;
         this.priorityIncreased = false;
         this.hasUmbrella = hasUmbrella;
-        this.health = 100.0;
+        this.health = STARTING_HEALTH;
+        this.damage = 0;
     }
 
     /*
@@ -70,6 +77,7 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
 
     @Override
     public void update() {
+        if (collisionTimeout > 0) collisionTimeout--;
     }
 
     @Override
@@ -105,6 +113,12 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
 
     @Override
     public void handleCollision(GameEntity other) {
+        if ( collisionTimeout > 0) return;
+
+        if (other instanceof Car || other instanceof EnemyCar || other instanceof Fireball) {
+            takeDamage(((Damageable) other).getDamage() * 1);
+            collisionTimeout = COLLISION_TIMEOUT;
+        }
     }
 
     public void updatePriority(WeatherCondition.WeatherType currentWeather) {
@@ -174,6 +188,6 @@ public class Passenger extends MovableEntity implements Damageable, Collidable {
 
     @Override
     public int getDamage() {
-        return 0;
+        return damage;
     }
 }

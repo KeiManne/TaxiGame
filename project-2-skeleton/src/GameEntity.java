@@ -28,7 +28,7 @@ public abstract class GameEntity implements Collidable {
     public void handleCollision(GameEntity other) {
     }
 
-    // Getters and setters
+    //getters and setters
     public Point getPosition() {
         return position;
     }

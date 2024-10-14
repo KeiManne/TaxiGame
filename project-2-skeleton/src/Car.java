@@ -1,3 +1,4 @@
+import bagel.*;
 import bagel.util.Point;
 
 public class Car extends IndependentlyMovableEntity implements Damageable {
@@ -35,10 +36,20 @@ public class Car extends IndependentlyMovableEntity implements Damageable {
 
     @Override
     public void handleCollision(GameEntity other) {
+        if (collisionTimeout > 0) return;
+
+        if (other instanceof Damageable) {
+            takeDamage(((Damageable) other).getDamage() * 1);
+            collisionTimeout = COLLISION_TIMEOUT;
+        }
     }
 
     @Override
     public void takeDamage(double amount) {
+        health -= amount;
+        if (health <= 0) {
+            //handle car destruction with explosion and dead image
+        }
     }
 
     //getters and setters

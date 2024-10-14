@@ -18,4 +18,14 @@ public class EnemyCar extends Car {
     public Fireball shootFireball() {
         return new Fireball(position.x, position.y, "res/fireball.png", 10.0, 0, FIREBALL_SPEED);
     }
+
+    @Override
+    public void handleCollision(GameEntity other) {
+        super.handleCollision(other);
+    }
+
+    @Override
+    public void takeDamage(double amount) {
+        super.takeDamage(amount);
+    }
 }

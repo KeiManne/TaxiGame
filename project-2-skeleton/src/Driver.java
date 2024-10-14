@@ -4,16 +4,19 @@ import bagel.util.Point;
 public class Driver extends MovableEntity implements Damageable, Collidable {
     private static final double INITIAL_HEALTH = 100.0;
     private static final int INVINCIBILITY_DURATION = 1000;
+    private static final int COLLISION_TIMEOUT = 200;
 
     private double health;
     private Taxi currentTaxi;
     private int invincibilityFrames;
+    private int collisionTimeout;
     private int damage;
 
     public Driver(double x, double y, String imagePath, double radius, double speedX, double speedY) {
         super(x, y, imagePath, radius, speedX, speedY);
         this.health = INITIAL_HEALTH;
         this.invincibilityFrames = 0;
+        this.collisionTimeout = 0;
         this.damage = 0;
     }
 
@@ -49,21 +52,57 @@ public class Driver extends MovableEntity implements Damageable, Collidable {
         if (invincibilityFrames > 0) {
             invincibilityFrames--;
         }
+        if (collisionTimeout > 0) collisionTimeout--;
     }
 
 
     @Override
     public void draw() {
+        //only draw if taxi was destroyed
+        if (currentTaxi == null) {
+            image.draw(position.x, position.y);
+        }
     }
 
+    /*
+    method to inflict damage to driver
+     */
     @Override
     public void takeDamage(double amount) {
+        if (invincibilityFrames == 0) {
+            health -= amount;
+            collisionTimeout = COLLISION_TIMEOUT;
+            if (health <= 0) {
+                // Handle driver "death" or game over
+            }
+        }
     }
 
     @Override
     public void handleCollision(GameEntity other) {
+        if ( collisionTimeout > 0) return;
+        if (other instanceof Damageable) {
+            takeDamage(((Damageable) other).getDamage() * 1);
+        } else if (other instanceof PowerUp) {
+            ((PowerUp) other).applyEffect(this);
+        }
     }
 
+    public boolean enterTaxi(Taxi taxi) {
+        if (taxi != null && !taxi.isDamaged() && position.distanceTo(taxi.getPosition()) <= 10) {
+            currentTaxi = taxi;
+            taxi.setHasDriver(true);
+            return true;
+        }
+        return false;
+    }
+
+    public void exitTaxi() {
+        if (currentTaxi != null) {
+            currentTaxi.setHasDriver(false);
+            currentTaxi = null;
+        }
+    }
 
     public void activateInvincibility() {
         invincibilityFrames = INVINCIBILITY_DURATION;
@@ -75,9 +114,26 @@ public class Driver extends MovableEntity implements Damageable, Collidable {
         return health;
     }
 
+    public boolean isInTaxi() {
+        return currentTaxi != null;
+    }
+
+    public Taxi getCurrentTaxi() {
+        return currentTaxi;
+    }
+
+    public void setCurrentTaxi(Taxi taxi) {
+        this.currentTaxi = taxi;
+    }
+
     @Override
     public int getDamage() {
         return damage;
+    }
+
+    public void setCollisionTimeout(int amount) {
+        this.collisionTimeout = amount;
+
     }
 
 }

@@ -2,10 +2,13 @@ import bagel.*;
 import bagel.util.Point;
 
 public class Taxi extends MovableEntity implements Collidable, Damageable {
+    private static final String DAMAGED_IMAGE = "res/taxiDamaged.png";
+    private static final int COLLISION_TIMEOUT = 200;
     private static final int INVINCIBILITY_FRAMES = 1000;
     private static final int MAX_COIN_POWER_FRAMES = 500;
 
     private double health;
+    private boolean isDamaged;
     private int collisionTimeout;
     private int invincibilityFrames;
     private boolean coinPowerActive;
@@ -13,16 +16,20 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
     private Passenger currentPassenger;
     private boolean hasDriver;
     private boolean isMoving;
+    private int damage;
+
 
     public Taxi(double x, double y, String imagePath, double radius, double speedX, double speedY) {
         super(x, y, imagePath, radius, speedX, speedY);
         this.health = 100.0;
+        this.isDamaged = false;
         this.collisionTimeout = 0;
         this.invincibilityFrames = 0;
         this.coinPowerActive = false;
         this.coinPowerFrames = 0;
         this.hasDriver = false;
         this.currentPassenger = null;
+        this.damage = 100;
     }
 
     /*
@@ -78,7 +85,11 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
      */
     @Override
     public void draw() {
-        image.draw(position.x, position.y);
+        if (isDamaged) {
+            new Image(DAMAGED_IMAGE).draw(position.x, position.y);
+        } else {
+            image.draw(position.x, position.y);
+        }
     }
 
     /*
@@ -86,10 +97,25 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
      */
     @Override
     public void handleCollision(GameEntity other) {
+        //only collide if not active invincibility or recent collision
+        if (invincibilityFrames > 0 || collisionTimeout > 0) return;
+        if (other instanceof Damageable) {
+            takeDamage(((Damageable) other).getDamage() * 1);
+        } else if (other instanceof PowerUp) {
+            ((PowerUp) other).applyEffect(this);
+        }
     }
 
     @Override
     public void takeDamage(double amount) {
+        if (invincibilityFrames == 0 && collisionTimeout == 0) {
+            health -= amount;
+            collisionTimeout = COLLISION_TIMEOUT;
+            if (health <= 0) {
+                isDamaged = true;
+                ejectOccupants();
+            }
+        }
     }
 
     /*
@@ -98,7 +124,7 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
     private void ejectOccupants() {
         if (currentPassenger != null) {
             currentPassenger.setPosition(new Point(position.x - 100, position.y));
-            currentPassenger.setPickedUp(false);
+            //currentPassenger.setPickedUp(false);
             currentPassenger = null;
         }
         hasDriver = false;
@@ -140,10 +166,14 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
     }
 
 
-    // Getters and setters
+    //getters and setters
     @Override
     public double getHealth() {
         return health;
+    }
+
+    public boolean isDamaged() {
+        return isDamaged;
     }
 
     public boolean hasCoinPower() {
@@ -177,6 +207,6 @@ public class Taxi extends MovableEntity implements Collidable, Damageable {
 
     @Override
     public int getDamage() {
-        return 0;
+        return damage;
     }
 }

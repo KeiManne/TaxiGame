@@ -21,4 +21,11 @@ public class Fireball extends IndependentlyMovableEntity implements Collidable {
     public void draw() {
         image.draw(position.x, position.y);
     }
+
+    @Override
+    public void handleCollision(GameEntity other) {
+        if (other instanceof Damageable) {
+            ((Damageable) other).takeDamage(DAMAGE);
+        }
+    }
 }

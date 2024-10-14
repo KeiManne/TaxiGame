@@ -48,6 +48,7 @@ public class ShadowTaxi extends AbstractGame {
 
     //game objects
     private Taxi taxi;
+    private Taxi taxiOld;
     private Driver driver;
     private List<Passenger> passengers;
     private List<Car> cars;
@@ -56,6 +57,7 @@ public class ShadowTaxi extends AbstractGame {
     private List<InvinciblePower> invinciblePowers;
     private List<TripEndFlag> tripEndFlags;
     private List<Fireball> fireballs;
+    private List<CollisionEffect> collisionEffects;
 
     //weather
     private List<WeatherCondition> weatherConditions;
@@ -122,6 +124,7 @@ public class ShadowTaxi extends AbstractGame {
         readWeatherConditions();
 
         currentWeather = WeatherCondition.WeatherType.SUNNY;
+        collisionEffects = new ArrayList<>();
     }
 
     /*
@@ -299,6 +302,7 @@ public class ShadowTaxi extends AbstractGame {
         updateBackgrounds(input);
         updateGameObjects(input);
         handlePassengerPickup();
+        handleCollisions();
         drawGameObjects();
         drawGameInfo();
         checkGameEndConditions();
@@ -343,7 +347,11 @@ public class ShadowTaxi extends AbstractGame {
         boolean moveDown = input.isDown(Keys.UP);
 
         taxi.move(input);
+        taxi.moveVertically(moveDown);
+        if (taxiOld != null) {taxiOld.moveVertically(moveDown);}
+        taxi.update();
         driver.move(input);
+        driver.update();
 
         for (Passenger passenger : passengers) {
             passenger.update();
@@ -383,6 +391,10 @@ public class ShadowTaxi extends AbstractGame {
             fireball.moveIndependently();
         }
 
+        for (CollisionEffect effect : collisionEffects) {
+            effect.moveVertically(moveDown);
+        }
+
         //spawn new cars
         if (MiscUtils.canSpawn(200)) { //1 in 200 chance to spawn car
             spawnCar();
@@ -392,10 +404,155 @@ public class ShadowTaxi extends AbstractGame {
             spawnEnemyCar();
         }
 
+        //update collision effects
+        collisionEffects.removeIf(effect -> {
+            effect.update();
+            return !effect.isActive();
+        });
+
+        handleDriverTaxiInteraction();
+        regenerateTaxiIfNeeded();
+
+    }
+
+    /*
+    method to manage all game object collisions
+     */
+    private void handleCollisions() {
+        //handle collisions between taxi and other objects
+        for (Car car : cars) {
+            if (taxi.collidesWith(car)) {
+                taxi.handleCollision(car);
+                car.handleCollision(taxi);
+                addCollisionEffect(taxi.getPosition().x, taxi.getPosition().y, CollisionEffect.EffectType.SMOKE);
+            }
+        }
+
+        for (EnemyCar enemyCar : enemyCars) {
+            if (taxi.collidesWith(enemyCar)) {
+                taxi.handleCollision(enemyCar);
+                enemyCar.handleCollision(taxi);
+                addCollisionEffect(taxi.getPosition().x, taxi.getPosition().y, CollisionEffect.EffectType.SMOKE);
+            }
+        }
+
+        for (Coin coin : new ArrayList<>(coins)) {
+            if (taxi.collidesWith(coin)) {
+                taxi.handleCollision(coin);
+                if (taxi.getCurrentPassenger() != null) {
+                    taxi.getCurrentPassenger().increasePriority();
+                }
+                coins.remove(coin);
+            }
+        }
+
+        for (InvinciblePower power : new ArrayList<>(invinciblePowers)) {
+            if (taxi.collidesWith(power)) {
+                taxi.handleCollision(power);
+                invinciblePowers.remove(power);
+            }
+        }
+
+        for (Fireball fireball : new ArrayList<>(fireballs)) {
+            if (taxi.collidesWith(fireball)) {
+                taxi.handleCollision(fireball);
+                fireballs.remove(fireball);
+                addCollisionEffect(taxi.getPosition().x, taxi.getPosition().y, CollisionEffect.EffectType.SMOKE);
+            }
+        }
+
+        //handle collisions between driver and other objects when not in taxi
+        if (!driver.isInTaxi()) {
+            for (Car car : cars) {
+                if (driver.collidesWith(car)) {
+                    driver.handleCollision(car);
+                    addCollisionEffect(driver.getPosition().x, driver.getPosition().y, CollisionEffect.EffectType.BLOOD);
+                }
+            }
+
+            for (EnemyCar enemyCar : enemyCars) {
+                if (driver.collidesWith(enemyCar)) {
+                    driver.handleCollision(enemyCar);
+                    addCollisionEffect(driver.getPosition().x, driver.getPosition().y, CollisionEffect.EffectType.BLOOD);
+                }
+            }
+
+            for (Fireball fireball : new ArrayList<>(fireballs)) {
+                if (driver.collidesWith(fireball)) {
+                    driver.handleCollision(fireball);
+                    fireballs.remove(fireball);
+                    addCollisionEffect(driver.getPosition().x, driver.getPosition().y, CollisionEffect.EffectType.BLOOD);
+                }
+            }
+
+            for (InvinciblePower power : new ArrayList<>(invinciblePowers)) {
+                if (driver.collidesWith(power)) {
+                    driver.handleCollision(power);
+                    invinciblePowers.remove(power);
+                }
+            }
+        }
+
+        //handle collisions between passengers and other objects
+        for (Passenger passenger : passengers) {
+            if (!passenger.isPickedUp() && !passenger.isDroppedOff()) {
+                for (Car car : cars) {
+                    if (passenger.collidesWith(car)) {
+                        passenger.handleCollision(car);
+                        addCollisionEffect(passenger.getPosition().x, passenger.getPosition().y, CollisionEffect.EffectType.BLOOD);
+                    }
+                }
+
+                for (EnemyCar enemyCar : enemyCars) {
+                    if (passenger.collidesWith(enemyCar)) {
+                        passenger.handleCollision(enemyCar);
+                        addCollisionEffect(passenger.getPosition().x, passenger.getPosition().y, CollisionEffect.EffectType.BLOOD);
+                    }
+                }
+
+                for (Fireball fireball : new ArrayList<>(fireballs)) {
+                    if (passenger.collidesWith(fireball)) {
+                        passenger.handleCollision(fireball);
+                        fireballs.remove(fireball);
+                        addCollisionEffect(passenger.getPosition().x, passenger.getPosition().y, CollisionEffect.EffectType.BLOOD);
+                    }
+                }
+            }
+        }
+
+        //check if taxi is permanently damaged and add fire rendering
+        if (taxi.isDamaged()) {
+            addCollisionEffect(taxi.getPosition().x, taxi.getPosition().y, CollisionEffect.EffectType.FIRE);
+        }
+    }
+
+    /*
+    method to add collision effects to render to gamePlayScreen
+     */
+    private void addCollisionEffect(double x, double y, CollisionEffect.EffectType type) {
+        String imagePath;
+        switch (type) {
+            case SMOKE:
+                imagePath = GAME_PROPS.getProperty("gameObjects.smoke.image");
+                break;
+            case FIRE:
+                imagePath = GAME_PROPS.getProperty("gameObjects.fire.image");
+                break;
+            case BLOOD:
+                imagePath = GAME_PROPS.getProperty("gameObjects.blood.image");
+                break;
+            default:
+                return;
+        }
+        collisionEffects.add(new CollisionEffect(x, y, imagePath, type));
     }
 
     private void drawGameObjects() {
         taxi.draw();
+        if (taxiOld != null) {taxiOld.draw();}
+        if (!driver.isInTaxi()) {
+            driver.draw();
+        }
 
         for (Passenger passenger : passengers) {
             passenger.draw();
@@ -423,6 +580,10 @@ public class ShadowTaxi extends AbstractGame {
 
         for (Fireball fireball : fireballs) {
             fireball.draw();
+        }
+
+        for (CollisionEffect effect : collisionEffects) {
+            effect.draw();
         }
     }
 
@@ -531,6 +692,42 @@ public class ShadowTaxi extends AbstractGame {
                 GAME_PROPS.getProperty("gameObjects.enemyCar.image"),
                 Double.parseDouble(GAME_PROPS.getProperty("gameObjects.enemyCar.radius")));
         enemyCars.add(newEnemyCar);
+    }
+
+    private void handleDriverTaxiInteraction() {
+        if (!driver.isInTaxi()) {
+            if (driver.getPosition().distanceTo(taxi.getPosition()) <= 10 && !taxi.isDamaged()) {
+                driver.enterTaxi(taxi);
+                taxi.setHasDriver(true);
+            }
+        } else if (taxi.isDamaged()) {
+            driver.exitTaxi();
+            taxi.setHasDriver(false);
+            driver.setPosition(new Point(taxi.getPosition().x - 50, taxi.getPosition().y));
+            driver.setCollisionTimeout(200);
+        }
+    }
+
+    private void regenerateTaxiIfNeeded() {
+        if (taxi.isDamaged() && !driver.isInTaxi()) {
+            double first = MiscUtils.selectAValue(
+                    Integer.parseInt(GAME_PROPS.getProperty("roadLaneCenter1")),
+                    Integer.parseInt(GAME_PROPS.getProperty("roadLaneCenter3"))
+            );
+            double x = MiscUtils.selectAValue((int) first, Integer.parseInt(GAME_PROPS.getProperty("roadLaneCenter2")));
+
+            double y = MiscUtils.selectAValue(
+                    Integer.parseInt(GAME_PROPS.getProperty("gameObjects.taxi.nextSpawnMinY")),
+                    Integer.parseInt(GAME_PROPS.getProperty("gameObjects.taxi.nextSpawnMaxY"))
+            );
+            taxiOld = taxi;
+            taxi = new Taxi(x, y,
+                    GAME_PROPS.getProperty("gameObjects.taxi.image"),
+                    Double.parseDouble(GAME_PROPS.getProperty("gameObjects.taxi.radius")),
+                    Double.parseDouble(GAME_PROPS.getProperty("gameObjects.taxi.speedX")),
+                    Double.parseDouble(GAME_PROPS.getProperty("gameObjects.taxi.speedY")));
+        }
+
     }
 
     private void handlePassengerPickup() {
@@ -649,6 +846,11 @@ public class ShadowTaxi extends AbstractGame {
         } else if (currentFrame >= maxFrames || driver.getHealth() <= 0 || getMinPassengerHealth() <= 0) {
             isWin = false;
             endGame();
+        } else if (true) {
+            //add condition for if background scrolls further than the newly regenerated taxi:
+            // If the driver walks vertically upwards past the newly generated taxi and the y-coordinate of the
+            // taxi becomes greater than or equal to 768, this is considered as a game loss. On screen, this will
+            // look like the driver moving upwards and the taxi moving out of the window from the bottom.
         }
     }
 
